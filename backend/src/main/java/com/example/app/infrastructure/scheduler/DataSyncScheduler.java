@@ -22,7 +22,7 @@ public class DataSyncScheduler {
 
     /**
      * 전체 동기화: 매 10분마다 모든 활성 외부 시스템 데이터 수집
-     * cron: "0 */10 * * * *"
+     * cron: "0 *&#47;10 * * * *"
      */
     @Scheduled(cron = "${sync.scheduler.full-sync-cron:0 */10 * * * *}")
     public void runFullSync() {
@@ -36,7 +36,7 @@ public class DataSyncScheduler {
 
     /**
      * 실패 레코드 재처리: 매 5분마다 FAILED 상태 레코드 재시도
-     * cron: "0 */5 * * * *"
+     * cron: "0 *&#47;5 * * * *"
      */
     @Scheduled(cron = "${sync.scheduler.retry-cron:0 */5 * * * *}")
     public void runRetryFailed() {

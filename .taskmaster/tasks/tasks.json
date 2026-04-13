@@ -219,7 +219,7 @@
           "1",
           "2"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -227,9 +227,10 @@
             "description": "Spring WebClient의 기본 설정을 구성하고 Bean으로 등록합니다.",
             "dependencies": [],
             "details": "WebClient.builder를 이용해 baseUrl, defaultHeader, request/response 로그 필터 기능을 설정하고 @Bean으로 externalApiClient를 등록합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "ApplicationContext 로딩 시 externalApiClient Bean이 정상 생성되는지 확인하는 단위 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T03:10:39.837Z"
           },
           {
             "id": 2,
@@ -239,9 +240,10 @@
               1
             ],
             "details": "WebClient.retrieve() 이후 onStatus를 활용해 클라이언트/서버 에러를 핸들링하고 retryWhen과 Retry.backoff(3회, 2초) 재시도 로직을 추가합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "WireMock을 사용해 5xx 에러 발생 시 3회 재시도 이후 실패 예외를 던지는지 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T03:10:53.281Z"
           },
           {
             "id": 3,
@@ -251,9 +253,10 @@
               2
             ],
             "details": "application.yml에 CircuitBreaker 설정을 추가하고 CircuitBreakerRegistry를 통해 externalApiClient 호출에 오픈/클로즈 임계치 및 대기시간을 설정합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Circuit Breaker가 실패 임계치 초과 시 Open 상태로 전환되고, 복구 후 Closed 상태로 돌아오는지 상태 전환 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T03:11:06.385Z"
           },
           {
             "id": 4,
@@ -263,14 +266,16 @@
               1
             ],
             "details": "WebClient builder에 responseTimeout, connectTimeout 설정과 Reactor Netty HttpClient의 커넥션 풀 옵션(maxConnections, pendingAcquireTimeout) 조정으로 성능을 튜닝합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "지연 응답을 시뮬레이션해 타임아웃 처리 여부와 커넥션 풀 과부하 시 적절한 에러가 발생하는지 확인",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T03:11:20.193Z"
           }
         ],
         "complexity": 8,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "외부 시스템 연동 WebClient 모듈 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) WebClientConfig 설정, 2) ExternalApiService 에러 핸들링 및 retry 로직 구현, 3) Resilience4j 기반 Circuit Breaker 구성, 4) 타임아웃 및 커넥션 풀 설정 및 성능 최적화"
+        "expansionPrompt": "외부 시스템 연동 WebClient 모듈 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) WebClientConfig 설정, 2) ExternalApiService 에러 핸들링 및 retry 로직 구현, 3) Resilience4j 기반 Circuit Breaker 구성, 4) 타임아웃 및 커넥션 풀 설정 및 성능 최적화",
+        "updatedAt": "2026-04-13T03:11:20.193Z"
       },
       {
         "id": "5",
@@ -583,9 +588,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-04-13T02:45:07.826Z",
+      "lastModified": "2026-04-13T03:11:20.195Z",
       "taskCount": 11,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ]

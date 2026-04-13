@@ -47,6 +47,47 @@ external:
     timeout-seconds: 30
     retry-max-attempts: 3
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      externalApi:
+        # CLOSED → OPEN: 10번 중 50% 실패 시
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 10s
+        # OPEN 유지 시간 후 HALF_OPEN 전환
+        wait-duration-in-open-state: 30s
+        # HALF_OPEN 에서 허용할 호출 수
+        permitted-number-of-calls-in-half-open-state: 5
+        # 예외 분류 — 4xx는 비즈니스 오류이므로 실패로 기록하지 않음
+        ignore-exceptions:
+          - com.example.app.infrastructure.webclient.ExternalApiException
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - io.netty.handler.timeout.ReadTimeoutException
+
+  retry:
+    instances:
+      externalApi:
+        max-attempts: 3
+        wait-duration: 1s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        # 4xx 오류는 재시도하지 않음
+        ignore-exceptions:
+          - com.example.app.infrastructure.webclient.ExternalApiException
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+
+  timelimiter:
+    instances:
+      externalApi:
+        timeout-duration: 30s
+
 springdoc:
   api-docs:
     path: /api/v1/api-docs

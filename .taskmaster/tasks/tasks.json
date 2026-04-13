@@ -78,7 +78,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -86,9 +86,10 @@
             "description": "외부 시스템 연동 데이터 저장을 위한 ExternalDataSync JPA 엔티티를 설계하고 매핑합니다.",
             "dependencies": [],
             "details": "@Entity, @Id, @GeneratedValue, @Column(columnDefinition = \"jsonb\"), @Enumerated(EnumType.STRING) 어노테이션을 사용하여 필드 매핑 설정 및 기본 CRUD 동작 검증 코드를 작성합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "@DataJpaTest를 활용한 엔티티 매핑 및 CRUD 기본 동작 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T02:26:57.115Z"
           },
           {
             "id": 2,
@@ -98,9 +99,10 @@
               1
             ],
             "details": "@Entity, @ManyToOne, @JoinColumn 어노테이션을 사용하여 외래키 관계를 정의하고, retryCount, errorMessage, attemptedAt 필드를 매핑합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "@DataJpaTest를 사용하여 외래키 제약조건, cascade 동작 및 관계 조회 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T02:27:10.246Z"
           },
           {
             "id": 3,
@@ -111,9 +113,10 @@
               2
             ],
             "details": "JpaRepository를 확장하여 findByStatusAndRetriedAtBefore, findBySourceSystem 등의 메서드를 선언하고, Pageable 파라미터를 활용한 페이징 조회 기능을 구현합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Spring Boot Test로 Repository 메서드 단위 CRUD 및 커스텀 쿼리 결과 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T02:27:23.229Z"
           },
           {
             "id": 4,
@@ -124,14 +127,16 @@
               2
             ],
             "details": "테이블 생성 DDL, JSONB 컬럼 정의, 외래키 제약조건, 인덱스 설정 등을 포함하는 SQL 또는 XML/YAML 마이그레이션 파일을 작성합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "flyway validate 또는 liquibase update 테스트로 스크립트 적용 및 롤백 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T02:27:36.663Z"
           }
         ],
         "complexity": 6,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "데이터베이스 스키마 설계 및 JPA 엔티티 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) ExternalDataSync 엔티티 설계 및 매핑, 2) SyncLog 엔티티 설계 및 관계 설정, 3) Repository 인터페이스 작성 및 커스텀 메서드 구현, 4) Flyway/Liquibase 마이그레이션 스크립트 작성"
+        "expansionPrompt": "데이터베이스 스키마 설계 및 JPA 엔티티 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) ExternalDataSync 엔티티 설계 및 매핑, 2) SyncLog 엔티티 설계 및 관계 설정, 3) Repository 인터페이스 작성 및 커스텀 메서드 구현, 4) Flyway/Liquibase 마이그레이션 스크립트 작성",
+        "updatedAt": "2026-04-13T02:27:36.663Z"
       },
       {
         "id": "3",
@@ -573,9 +578,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-04-13T02:04:28.692Z",
+      "lastModified": "2026-04-13T02:27:36.665Z",
       "taskCount": 11,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]

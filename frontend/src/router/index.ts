@@ -12,8 +12,24 @@ const router = createRouter({
     },
     {
       path: '/',
+      redirect: '/dashboard',
+    },
+    {
+      path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/pages/DashboardPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/systems',
+      name: 'systems',
+      component: () => import('@/pages/SystemsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/sync-data',
+      name: 'sync-data',
+      component: () => import('@/pages/SyncDataPage.vue'),
       meta: { requiresAuth: true },
     },
   ],

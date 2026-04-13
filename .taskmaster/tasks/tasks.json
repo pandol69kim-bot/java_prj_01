@@ -375,7 +375,7 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -383,9 +383,10 @@
             "description": "Vue 3 Composition API 기반 프로젝트 생성 및 기본 폴더 구조 구성",
             "dependencies": [],
             "details": "npm init vue@latest로 프로젝트 생성 후 vue-router, pinia 설치. src 내부에 components, composables, stores, views, layouts 디렉토리 생성",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Vue 개발 서버 실행 확인 및 디렉토리 구조가 올바르게 생성되었는지 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:06:04.677Z"
           },
           {
             "id": 2,
@@ -395,9 +396,10 @@
               1
             ],
             "details": "src/components/common 폴더에 컴포넌트 파일 생성. props와 emits 정의, 스타일링 적용 후 Storybook 또는 샘플 뷰에서 렌더링 확인",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Vitest와 Vue Test Utils를 사용해 컴포넌트 렌더링, props 전달, 이벤트 발생 동작 단위 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:06:17.600Z"
           },
           {
             "id": 3,
@@ -407,9 +409,10 @@
               1
             ],
             "details": "src/stores/auth.ts와 syncData.ts 파일 생성. defineStore로 토큰, 사용자 정보, 동기화 상태 정의, localStorage 연동 및 액션 메서드 구현",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "스토어 액션 호출 후 상태 변화 테스트 및 localStorage 데이터 저장/로드 동작 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:06:30.965Z"
           },
           {
             "id": 4,
@@ -419,14 +422,16 @@
               3
             ],
             "details": "src/composables/useApi.ts 또는 api.ts 파일 생성. axios.create로 인스턴스 초기화, request 인터셉터에서 authStore.token 헤더 추가, response 인터셉터 에러 처리 로직 구현",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "모의 서버를 이용해 요청 시 Authorization 헤더 포함 여부 테스트 및 에러 응답 처리 시나리오 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:06:44.541Z"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Vue.js 3 프론트엔드 구조 및 공통 컴포넌트 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) 프로젝트 폴더 구조 및 초기 설정, 2) BaseButton, BaseInput 등 공통 UI 컴포넌트 구현, 3) Pinia 스토어(auth, syncData) 설정, 4) Axios 인터셉터 및 API 유틸리티 구성"
+        "expansionPrompt": "Vue.js 3 프론트엔드 구조 및 공통 컴포넌트 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) 프로젝트 폴더 구조 및 초기 설정, 2) BaseButton, BaseInput 등 공통 UI 컴포넌트 구현, 3) Pinia 스토어(auth, syncData) 설정, 4) Axios 인터셉터 및 API 유틸리티 구성",
+        "updatedAt": "2026-04-13T05:06:44.541Z"
       },
       {
         "id": "8",
@@ -594,9 +599,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-04-13T04:27:17.073Z",
+      "lastModified": "2026-04-13T05:06:44.542Z",
       "taskCount": 11,
-      "completedCount": 6,
+      "completedCount": 7,
       "tags": [
         "master"
       ]

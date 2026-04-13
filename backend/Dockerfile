@@ -1,25 +1,23 @@
 # ── Development stage ─────────────────────────────────────────
-FROM eclipse-temurin:17-jdk-alpine AS development
+FROM gradle:8-jdk17-alpine AS development
 WORKDIR /app
 
-COPY gradlew settings.gradle build.gradle ./
-COPY gradle/ gradle/
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+COPY build.gradle settings.gradle ./
+RUN gradle dependencies --no-daemon --quiet
 
-# 소스는 볼륨 마운트로 주입되므로 CMD에서 bootRun 실행
+# 소스는 볼륨 마운트로 주입
 EXPOSE 8080
-CMD ["./gradlew", "bootRun", "--no-daemon"]
+CMD ["gradle", "bootRun", "--no-daemon"]
 
 # ── Build stage ──────────────────────────────────────────────
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM gradle:8-jdk17-alpine AS builder
 WORKDIR /app
 
-COPY gradlew settings.gradle build.gradle ./
-COPY gradle/ gradle/
-RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+COPY build.gradle settings.gradle ./
+RUN gradle dependencies --no-daemon --quiet
 
 COPY src/ src/
-RUN ./gradlew bootJar --no-daemon -x test
+RUN gradle bootJar --no-daemon -x test
 
 # ── Runtime stage ─────────────────────────────────────────────
 FROM eclipse-temurin:17-jre-alpine AS runtime

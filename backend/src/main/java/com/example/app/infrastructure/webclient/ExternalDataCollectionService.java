@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExternalSystemService {
+public class ExternalDataCollectionService {
 
     private final ExternalApiClient externalApiClient;
     private final ExternalSystemRepository externalSystemRepository;

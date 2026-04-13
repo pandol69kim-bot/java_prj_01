@@ -1,0 +1,510 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "프로젝트 인프라 및 개발 환경 구축",
+        "description": "Docker 기반 개발 환경 설정, PostgreSQL/MySQL 데이터베이스 컨테이너 구성, Spring Boot 3.x 및 Vue.js 3 프로젝트 초기화",
+        "details": "1. Docker Compose 파일 생성:\n   - PostgreSQL 컨테이너 (포트 5432)\n   - Nginx 리버스 프록시 설정\n   \n2. Spring Boot 프로젝트 초기화:\n   ```\n   // build.gradle 주요 의존성\n   implementation 'org.springframework.boot:spring-boot-starter-web'\n   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'\n   implementation 'org.springframework.boot:spring-boot-starter-security'\n   implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient\n   ```\n   \n3. Vue.js 3 프로젝트 초기화:\n   ```bash\n   npm create vue@latest frontend -- --typescript\n   cd frontend && npm install pinia axios vue-router\n   ```\n   \n4. GitHub Actions CI/CD 워크플로우 기본 설정",
+        "testStrategy": "- Docker 컨테이너 정상 실행 확인\n- Spring Boot 애플리케이션 /actuator/health 엔드포인트 응답 확인\n- Vue.js 개발 서버 정상 기동 확인\n- 데이터베이스 연결 테스트",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Docker Compose 설정 및 PostgreSQL·Nginx 컨테이너 구성",
+            "description": "Docker Compose 파일을 작성하여 PostgreSQL 데이터베이스와 Nginx 리버스 프록시를 구성합니다.",
+            "dependencies": [],
+            "details": "docker-compose.yml에 PostgreSQL 이미지 설정(포트 5432, 환경 변수)을 추가하고, Nginx 서비스에는 리버스 프록시 설정과 볼륨 마운트를 정의합니다.",
+            "status": "pending",
+            "testStrategy": "docker-compose up 실행 후 PostgreSQL 접속 및 Nginx 프록시 동작 확인"
+          },
+          {
+            "id": 2,
+            "title": "Spring Boot 3.x 프로젝트 초기화",
+            "description": "Spring Boot 3.x 프로젝트를 Gradle로 초기화하고 웹, JPA, 시큐리티, WebFlux 의존성을 설정합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "build.gradle에 spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-security, spring-boot-starter-webflux 의존성을 추가하고 초기 패키지 구조를 생성합니다.",
+            "status": "pending",
+            "testStrategy": "./gradlew bootRun 후 /actuator/health 엔드포인트 응답 및 로그 확인"
+          },
+          {
+            "id": 3,
+            "title": "Vue.js 3 프로젝트 초기화",
+            "description": "TypeScript 기반 Vue.js 3 프로젝트를 생성하고 Pinia, Axios, Vue Router를 설치 및 설정합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "npm create vue@latest frontend -- --typescript 실행 후 frontend 디렉토리에서 npm install pinia axios vue-router 명령어로 필수 라이브러리를 설치하고 초기 컴포넌트 구조를 구성합니다.",
+            "status": "pending",
+            "testStrategy": "npm run dev 실행 후 개발 서버 접속 및 기본 라우트 화면 렌더링 확인"
+          },
+          {
+            "id": 4,
+            "title": "GitHub Actions CI/CD 워크플로우 구성",
+            "description": "Spring Boot와 Vue.js 빌드 및 테스트를 자동화하는 GitHub Actions 워크플로우를 작성합니다.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": ".github/workflows/ci.yml 파일에 Java CI, Node.js CI, Docker 빌드 및 Push 단계 정의, 브랜치 및 PR 트리거 설정을 포함하여 워크플로우를 구현합니다.",
+            "status": "pending",
+            "testStrategy": "PR 생성 시 GitHub Actions 실행 로그 확인, 빌드·테스트·Docker 이미지 푸시 단계 성공 여부 검증"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "데이터베이스 스키마 설계 및 JPA 엔티티 구현",
+        "description": "외부 시스템 연동 데이터를 저장할 테이블 설계 및 Spring Data JPA 엔티티, Repository 인터페이스 구현",
+        "details": "1. 핵심 엔티티 설계:\n   ```java\n   @Entity\n   public class ExternalDataSync {\n       @Id @GeneratedValue\n       private Long id;\n       private String sourceSystem;\n       private String dataType;\n       @Column(columnDefinition = \"jsonb\")\n       private String rawData;\n       private LocalDateTime syncedAt;\n       @Enumerated(EnumType.STRING)\n       private SyncStatus status; // PENDING, SUCCESS, FAILED, RETRY\n   }\n   \n   @Entity\n   public class SyncLog {\n       @Id @GeneratedValue\n       private Long id;\n       @ManyToOne\n       private ExternalDataSync syncData;\n       private String errorMessage;\n       private int retryCount;\n       private LocalDateTime attemptedAt;\n   }\n   ```\n   \n2. Repository 인터페이스:\n   ```java\n   public interface ExternalDataSyncRepository extends JpaRepository<ExternalDataSync, Long> {\n       List<ExternalDataSync> findByStatusAndRetriedAtBefore(SyncStatus status, LocalDateTime time);\n       Page<ExternalDataSync> findBySourceSystem(String source, Pageable pageable);\n   }\n   ```\n   \n3. Flyway/Liquibase 마이그레이션 스크립트 작성",
+        "testStrategy": "- JPA 엔티티 매핑 테스트 (@DataJpaTest)\n- Repository 메서드 CRUD 테스트\n- 외래키 관계 및 cascade 동작 검증\n- 인덱스 성능 테스트",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "ExternalDataSync 엔티티 설계 및 매핑",
+            "description": "외부 시스템 연동 데이터 저장을 위한 ExternalDataSync JPA 엔티티를 설계하고 매핑합니다.",
+            "dependencies": [],
+            "details": "@Entity, @Id, @GeneratedValue, @Column(columnDefinition = \"jsonb\"), @Enumerated(EnumType.STRING) 어노테이션을 사용하여 필드 매핑 설정 및 기본 CRUD 동작 검증 코드를 작성합니다.",
+            "status": "pending",
+            "testStrategy": "@DataJpaTest를 활용한 엔티티 매핑 및 CRUD 기본 동작 검증"
+          },
+          {
+            "id": 2,
+            "title": "SyncLog 엔티티 설계 및 ExternalDataSync 관계 설정",
+            "description": "SyncLog 엔티티를 설계하고 ExternalDataSync 엔티티와 ManyToOne 관계를 설정합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "@Entity, @ManyToOne, @JoinColumn 어노테이션을 사용하여 외래키 관계를 정의하고, retryCount, errorMessage, attemptedAt 필드를 매핑합니다.",
+            "status": "pending",
+            "testStrategy": "@DataJpaTest를 사용하여 외래키 제약조건, cascade 동작 및 관계 조회 테스트"
+          },
+          {
+            "id": 3,
+            "title": "Repository 인터페이스 작성 및 커스텀 메서드 구현",
+            "description": "ExternalDataSyncRepository 및 SyncLogRepository 인터페이스를 작성하고, 커스텀 조회 메서드를 구현합니다.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "JpaRepository를 확장하여 findByStatusAndRetriedAtBefore, findBySourceSystem 등의 메서드를 선언하고, Pageable 파라미터를 활용한 페이징 조회 기능을 구현합니다.",
+            "status": "pending",
+            "testStrategy": "Spring Boot Test로 Repository 메서드 단위 CRUD 및 커스텀 쿼리 결과 검증"
+          },
+          {
+            "id": 4,
+            "title": "Flyway/Liquibase 마이그레이션 스크립트 작성",
+            "description": "데이터베이스 스키마 버전 관리를 위해 Flyway 또는 Liquibase 마이그레이션 스크립트를 작성합니다.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "테이블 생성 DDL, JSONB 컬럼 정의, 외래키 제약조건, 인덱스 설정 등을 포함하는 SQL 또는 XML/YAML 마이그레이션 파일을 작성합니다.",
+            "status": "pending",
+            "testStrategy": "flyway validate 또는 liquibase update 테스트로 스크립트 적용 및 롤백 검증"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "JWT 인증 시스템 및 Spring Security 구현",
+        "description": "토큰 기반 인증/인가 시스템 구축, Role 기반 접근 제어, 리프레시 토큰 메커니즘 구현",
+        "details": "1. JWT 유틸리티 클래스:\n   ```java\n   @Component\n   public class JwtTokenProvider {\n       @Value(\"${jwt.secret}\")\n       private String secretKey;\n       @Value(\"${jwt.expiration}\")\n       private long validityInMs;\n       \n       public String createToken(String username, List<String> roles) {\n           Claims claims = Jwts.claims().setSubject(username);\n           claims.put(\"roles\", roles);\n           Date now = new Date();\n           return Jwts.builder()\n               .setClaims(claims)\n               .setIssuedAt(now)\n               .setExpiration(new Date(now.getTime() + validityInMs))\n               .signWith(SignatureAlgorithm.HS256, secretKey)\n               .compact();\n       }\n   }\n   ```\n   \n2. Security 설정:\n   ```java\n   @Configuration\n   @EnableWebSecurity\n   public class SecurityConfig {\n       @Bean\n       public SecurityFilterChain filterChain(HttpSecurity http) {\n           http.csrf(csrf -> csrf.disable())\n               .sessionManagement(session -> session.stateless())\n               .authorizeHttpRequests(auth -> auth\n                   .requestMatchers(\"/api/auth/**\").permitAll()\n                   .requestMatchers(\"/api/admin/**\").hasRole(\"ADMIN\")\n                   .anyRequest().authenticated())\n               .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);\n       }\n   }\n   ```\n   \n3. 리프레시 토큰 저장 및 갱신 로직",
+        "testStrategy": "- 유효한 토큰으로 API 접근 성공 테스트\n- 만료된 토큰 거부 테스트\n- 권한 없는 엔드포인트 접근 차단 테스트\n- 리프레시 토큰 갱신 플로우 테스트",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "JwtTokenProvider 클래스 구현",
+            "description": "JWT 토큰 생성 및 검증을 위한 JwtTokenProvider 클래스 작성",
+            "dependencies": [],
+            "details": "secretKey 및 expiration 속성 주입 후 createToken, validateToken, getAuthentication 메소드 구현",
+            "status": "pending",
+            "testStrategy": "유효한 JWT 생성 테스트, 만료된 토큰 검증 테스트, 잘못된 서명 예외 처리 테스트"
+          },
+          {
+            "id": 2,
+            "title": "Spring Security 필터 체인 및 SecurityConfig 설정",
+            "description": "HttpSecurity를 이용한 CSRF 비활성화, stateless 세션 관리, Role 기반 접근 제어 설정",
+            "dependencies": [
+              1
+            ],
+            "details": "SecurityFilterChain 빈 정의, csrf 비활성화, stateless 세션 설정, JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가, URL 권한 매핑 구현",
+            "status": "pending",
+            "testStrategy": "인증 없이 허용된 경로 접근 테스트, ADMIN 권한 보호 경로 접근 차단 테스트"
+          },
+          {
+            "id": 3,
+            "title": "인증 API (로그인/로그아웃) 엔드포인트 개발",
+            "description": "사용자 로그인 처리 후 액세스 토큰 및 리프레시 토큰 반환, 로그아웃 시 토큰 무효화 로직 작성",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "AuthController에서 /api/auth/login, /api/auth/logout 엔드포인트 구현. UsernamePasswordAuthenticationToken으로 인증 수행 후 토큰 생성 및 반환, 로그아웃 시 토큰 블랙리스트 처리",
+            "status": "pending",
+            "testStrategy": "로그인 성공/실패 응답 테스트, 로그아웃 후 액세스 요청 차단 테스트"
+          },
+          {
+            "id": 4,
+            "title": "리프레시 토큰 저장 및 갱신 메커니즘 구현",
+            "description": "DB 또는 인메모리에 리프레시 토큰 저장, 검증 및 갱신 API 구현",
+            "dependencies": [
+              3
+            ],
+            "details": "RefreshToken 엔티티 및 레포지토리 생성, 토큰 저장/조회/삭제 로직 구현, /api/auth/refresh 엔드포인트에서 유효성 검사 및 새로운 액세스 토큰 발급 처리",
+            "status": "pending",
+            "testStrategy": "리프레시 토큰 저장 및 조회 검증 테스트, 만료/잘못된 토큰 갱신 실패 테스트"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "외부 시스템 연동 WebClient 모듈 개발",
+        "description": "Spring WebClient를 활용한 외부 REST/SOAP API 연동 클라이언트 구현, 에러 핸들링 및 재시도 메커니즘 구축",
+        "details": "1. WebClient 설정:\n   ```java\n   @Configuration\n   public class WebClientConfig {\n       @Bean\n       public WebClient externalApiClient() {\n           return WebClient.builder()\n               .baseUrl(\"${external.api.base-url}\")\n               .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)\n               .filter(ExchangeFilterFunction.ofRequestProcessor(this::logRequest))\n               .filter(ExchangeFilterFunction.ofResponseProcessor(this::logResponse))\n               .build();\n       }\n   }\n   ```\n   \n2. 재시도 및 에러 핸들링:\n   ```java\n   @Service\n   public class ExternalApiService {\n       private final WebClient webClient;\n       \n       public Mono<ExternalDataDto> fetchData(String endpoint) {\n           return webClient.get()\n               .uri(endpoint)\n               .retrieve()\n               .onStatus(HttpStatusCode::is4xxClientError, this::handleClientError)\n               .onStatus(HttpStatusCode::is5xxServerError, this::handleServerError)\n               .bodyToMono(ExternalDataDto.class)\n               .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))\n                   .filter(throwable -> throwable instanceof WebClientResponseException.ServiceUnavailable));\n       }\n   }\n   ```\n   \n3. Circuit Breaker 패턴 적용 (Resilience4j)\n4. 타임아웃 및 커넥션 풀 설정",
+        "testStrategy": "- WireMock을 이용한 외부 API 모킹 테스트\n- 재시도 로직 동작 확인 (3회 재시도 후 실패)\n- 타임아웃 발생 시 적절한 예외 처리 검증\n- Circuit Breaker open/close 상태 전환 테스트",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "WebClient Config 설정 구현",
+            "description": "Spring WebClient의 기본 설정을 구성하고 Bean으로 등록합니다.",
+            "dependencies": [],
+            "details": "WebClient.builder를 이용해 baseUrl, defaultHeader, request/response 로그 필터 기능을 설정하고 @Bean으로 externalApiClient를 등록합니다.",
+            "status": "pending",
+            "testStrategy": "ApplicationContext 로딩 시 externalApiClient Bean이 정상 생성되는지 확인하는 단위 테스트"
+          },
+          {
+            "id": 2,
+            "title": "ExternalApiService 에러 핸들링 및 재시도 로직 구현",
+            "description": "4xx 및 5xx 에러 처리와 ServiceUnavailable에 대한 재시도 로직을 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "WebClient.retrieve() 이후 onStatus를 활용해 클라이언트/서버 에러를 핸들링하고 retryWhen과 Retry.backoff(3회, 2초) 재시도 로직을 추가합니다.",
+            "status": "pending",
+            "testStrategy": "WireMock을 사용해 5xx 에러 발생 시 3회 재시도 이후 실패 예외를 던지는지 검증"
+          },
+          {
+            "id": 3,
+            "title": "Resilience4j 기반 Circuit Breaker 구성",
+            "description": "Resilience4j를 이용해 Circuit Breaker를 적용하여 장애 전파를 방지합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "application.yml에 CircuitBreaker 설정을 추가하고 CircuitBreakerRegistry를 통해 externalApiClient 호출에 오픈/클로즈 임계치 및 대기시간을 설정합니다.",
+            "status": "pending",
+            "testStrategy": "Circuit Breaker가 실패 임계치 초과 시 Open 상태로 전환되고, 복구 후 Closed 상태로 돌아오는지 상태 전환 테스트"
+          },
+          {
+            "id": 4,
+            "title": "타임아웃 및 커넥션 풀 설정 및 성능 최적화",
+            "description": "요청 타임아웃과 커넥션 풀 크기를 설정하여 대량 호출 시 안정성을 확보합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "WebClient builder에 responseTimeout, connectTimeout 설정과 Reactor Netty HttpClient의 커넥션 풀 옵션(maxConnections, pendingAcquireTimeout) 조정으로 성능을 튜닝합니다.",
+            "status": "pending",
+            "testStrategy": "지연 응답을 시뮬레이션해 타임아웃 처리 여부와 커넥션 풀 과부하 시 적절한 에러가 발생하는지 확인"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "데이터 동기화 스케줄링 및 배치 처리 구현",
+        "description": "Spring Task Scheduler를 활용한 주기적 데이터 동기화, 트랜잭션 관리 및 실패 시 롤백/재시도 메커니즘",
+        "details": "1. 스케줄러 설정:\n   ```java\n   @Configuration\n   @EnableScheduling\n   public class SchedulerConfig {\n       @Bean\n       public TaskScheduler taskScheduler() {\n           ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();\n           scheduler.setPoolSize(5);\n           scheduler.setThreadNamePrefix(\"sync-scheduler-\");\n           return scheduler;\n       }\n   }\n   ```\n   \n2. 동기화 작업:\n   ```java\n   @Service\n   @Transactional\n   public class DataSyncService {\n       @Scheduled(cron = \"0 */10 * * * *\") // 10분마다\n       public void syncExternalData() {\n           List<ExternalDataSync> pendingData = repository.findByStatus(PENDING);\n           pendingData.forEach(this::processSyncWithRetry);\n       }\n       \n       @Retryable(value = {SyncException.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))\n       public void processSyncWithRetry(ExternalDataSync data) {\n           try {\n               externalApiService.sendData(data);\n               data.setStatus(SUCCESS);\n           } catch (Exception e) {\n               data.setStatus(RETRY);\n               throw new SyncException(e);\n           }\n       }\n   }\n   ```\n   \n3. 실패 데이터 재처리 스케줄러\n4. 동기화 상태 모니터링 메트릭 수집",
+        "testStrategy": "- 스케줄러 정상 실행 테스트 (TestScheduler 활용)\n- 트랜잭션 롤백 검증 (실패 시 데이터 일관성 유지)\n- 재시도 횟수 초과 시 FAILED 상태 전환 확인\n- 동시성 처리 테스트 (멀티스레드 환경)",
+        "priority": "high",
+        "dependencies": [
+          2,
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "TaskScheduler Bean 설정 및 스레드풀 구성",
+            "description": "Spring Task Scheduler를 설정하고 스레드 풀을 구성합니다.",
+            "dependencies": [],
+            "details": "ThreadPoolTaskScheduler를 Bean으로 등록하고 poolSize, threadNamePrefix 등을 설정하여 동시성 스케줄링 환경을 구성합니다.",
+            "status": "pending",
+            "testStrategy": "스케줄러 Bean 로딩 테스트 및 스레드풀 크기 확인"
+          },
+          {
+            "id": 2,
+            "title": "DataSyncService 스케줄링 및 재시도 로직 구현",
+            "description": "@Scheduled와 @Retryable을 활용한 데이터 동기화 서비스 메서드를 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "cron 표현식을 이용해 10분 주기 스케줄을 설정하고 repository에서 PENDING 상태 데이터를 조회하여 processSyncWithRetry 메서드를 호출하도록 구현합니다. @Retryable 어노테이션으로 예외 발생 시 최대 3회 재시도 및 backoff 설정을 추가합니다.",
+            "status": "pending",
+            "testStrategy": "Spring TestScheduler로 스케줄 실행 시점 검증, 예외 발생 시 재시도 횟수 확인"
+          },
+          {
+            "id": 3,
+            "title": "실패 데이터 재처리 스케줄러 구현",
+            "description": "실패 및 재시도 대기 중인 데이터를 주기적으로 재처리하는 스케줄러를 개발합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "별도의 @Scheduled 메서드를 추가하여 상태가 RETRY 또는 FAILED인 데이터를 조회하고, 재처리 로직을 재호출하도록 구현합니다. 재시도 정책과 최대 재시도 횟수를 고려하여 상태 전환을 처리합니다.",
+            "status": "pending",
+            "testStrategy": "실패 상태 데이터가 재처리 대상이 되는지 확인, 재처리 로직 호출 및 상태 업데이트 검증"
+          },
+          {
+            "id": 4,
+            "title": "동기화 상태 모니터링 메트릭 수집 및 대시보드 연동",
+            "description": "데이터 동기화 수행 현황을 모니터링하기 위한 메트릭 수집 및 대시보드 연동을 구현합니다.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Micrometer를 활용해 성공, 실패, 재시도 횟수 등의 카운터 및 타이머 메트릭을 등록하고 Prometheus에 노출합니다. Grafana 대시보드 템플릿을 작성하여 주요 지표를 시각화합니다.",
+            "status": "pending",
+            "testStrategy": "메트릭이 Prometheus에 노출되는지 확인, Grafana 대시보드에서 지표 조회 검증"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "RESTful API 엔드포인트 설계 및 Swagger 문서화",
+        "description": "리소스 중심 REST API 설계, HTTP 상태 코드 준수, OpenAPI 3.0 기반 Swagger UI 자동 생성",
+        "details": "1. REST 컨트롤러:\n   ```java\n   @RestController\n   @RequestMapping(\"/api/v1/sync-data\")\n   @Tag(name = \"데이터 동기화\", description = \"외부 시스템 데이터 동기화 API\")\n   public class SyncDataController {\n       \n       @GetMapping\n       @Operation(summary = \"동기화 데이터 목록 조회\")\n       public ResponseEntity<Page<SyncDataResponse>> list(\n           @RequestParam(defaultValue = \"0\") int page,\n           @RequestParam(defaultValue = \"20\") int size,\n           @RequestParam(required = false) String sourceSystem) {\n           return ResponseEntity.ok(service.findAll(page, size, sourceSystem));\n       }\n       \n       @PostMapping\n       @Operation(summary = \"수동 동기화 요청\")\n       @ResponseStatus(HttpStatus.ACCEPTED)\n       public SyncDataResponse requestSync(@Valid @RequestBody SyncRequest request) {\n           return service.createSyncRequest(request);\n       }\n   }\n   ```\n   \n2. DTO 및 유효성 검증:\n   ```java\n   public record SyncRequest(\n       @NotBlank String sourceSystem,\n       @NotNull DataType dataType,\n       Map<String, Object> parameters\n   ) {}\n   ```\n   \n3. OpenAPI 설정:\n   ```java\n   @Configuration\n   public class SwaggerConfig {\n       @Bean\n       public OpenAPI openAPI() {\n           return new OpenAPI()\n               .info(new Info().title(\"외부 연동 API\").version(\"1.0\"))\n               .addSecurityItem(new SecurityRequirement().addList(\"Bearer\"))\n               .components(new Components().addSecuritySchemes(\"Bearer\", \n                   new SecurityScheme().type(HTTP).scheme(\"bearer\").bearerFormat(\"JWT\")));\n       }\n   }\n   ```",
+        "testStrategy": "- MockMvc를 이용한 컨트롤러 단위 테스트\n- HTTP 상태 코드 정확성 검증 (200, 201, 400, 401, 404, 500)\n- 입력값 유효성 검증 테스트\n- Swagger UI 정상 렌더링 확인",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Vue.js 3 프론트엔드 기반 구조 및 공통 컴포넌트 개발",
+        "description": "Composition API 기반 Vue 3 프로젝트 구조화, Pinia 상태 관리 설정, 공통 UI 컴포넌트 라이브러리 구축",
+        "details": "1. 프로젝트 구조:\n   ```\n   src/\n   ├── components/\n   │   ├── common/\n   │   │   ├── BaseButton.vue\n   │   │   ├── BaseInput.vue\n   │   │   ├── DataTable.vue\n   │   │   └── LoadingSpinner.vue\n   │   └── layout/\n   │       ├── AppHeader.vue\n   │       └── AppSidebar.vue\n   ├── composables/\n   │   ├── useAuth.ts\n   │   ├── useApi.ts\n   │   └── usePagination.ts\n   ├── stores/\n   │   ├── auth.ts\n   │   └── syncData.ts\n   └── views/\n   ```\n   \n2. Pinia 스토어:\n   ```typescript\n   // stores/auth.ts\n   export const useAuthStore = defineStore('auth', () => {\n     const token = ref<string | null>(localStorage.getItem('token'));\n     const user = ref<User | null>(null);\n     \n     const login = async (credentials: LoginRequest) => {\n       const response = await authApi.login(credentials);\n       token.value = response.accessToken;\n       localStorage.setItem('token', response.accessToken);\n     };\n     \n     return { token, user, login, logout, isAuthenticated };\n   });\n   ```\n   \n3. Axios 인터셉터 설정:\n   ```typescript\n   api.interceptors.request.use((config) => {\n     const authStore = useAuthStore();\n     if (authStore.token) {\n       config.headers.Authorization = `Bearer ${authStore.token}`;\n     }\n     return config;\n   });\n   ```",
+        "testStrategy": "- 컴포넌트 단위 테스트 (Vitest + Vue Test Utils)\n- Pinia 스토어 상태 변경 테스트\n- 라우터 가드 인증 체크 테스트\n- 반응형 레이아웃 브라우저 테스트",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "프로젝트 폴더 구조 설정 및 초기화",
+            "description": "Vue 3 Composition API 기반 프로젝트 생성 및 기본 폴더 구조 구성",
+            "dependencies": [],
+            "details": "npm init vue@latest로 프로젝트 생성 후 vue-router, pinia 설치. src 내부에 components, composables, stores, views, layouts 디렉토리 생성",
+            "status": "pending",
+            "testStrategy": "Vue 개발 서버 실행 확인 및 디렉토리 구조가 올바르게 생성되었는지 검증"
+          },
+          {
+            "id": 2,
+            "title": "공통 UI 컴포넌트(BaseButton, BaseInput 등) 구현",
+            "description": "BaseButton.vue, BaseInput.vue, DataTable.vue, LoadingSpinner.vue 컴포넌트를 개발",
+            "dependencies": [
+              1
+            ],
+            "details": "src/components/common 폴더에 컴포넌트 파일 생성. props와 emits 정의, 스타일링 적용 후 Storybook 또는 샘플 뷰에서 렌더링 확인",
+            "status": "pending",
+            "testStrategy": "Vitest와 Vue Test Utils를 사용해 컴포넌트 렌더링, props 전달, 이벤트 발생 동작 단위 테스트"
+          },
+          {
+            "id": 3,
+            "title": "Pinia 스토어(auth, syncData) 설정",
+            "description": "Pinia를 이용해 auth 및 syncData 스토어 모듈을 생성하고 상태 관리 로직 구현",
+            "dependencies": [
+              1
+            ],
+            "details": "src/stores/auth.ts와 syncData.ts 파일 생성. defineStore로 토큰, 사용자 정보, 동기화 상태 정의, localStorage 연동 및 액션 메서드 구현",
+            "status": "pending",
+            "testStrategy": "스토어 액션 호출 후 상태 변화 테스트 및 localStorage 데이터 저장/로드 동작 검증"
+          },
+          {
+            "id": 4,
+            "title": "Axios 인터셉터 및 API 유틸리티 구성",
+            "description": "Axios 인스턴스 생성 및 요청/응답 인터셉터 설정으로 API 호출 유틸리티 구축",
+            "dependencies": [
+              3
+            ],
+            "details": "src/composables/useApi.ts 또는 api.ts 파일 생성. axios.create로 인스턴스 초기화, request 인터셉터에서 authStore.token 헤더 추가, response 인터셉터 에러 처리 로직 구현",
+            "status": "pending",
+            "testStrategy": "모의 서버를 이용해 요청 시 Authorization 헤더 포함 여부 테스트 및 에러 응답 처리 시나리오 검증"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "대시보드 및 상태 모니터링 UI 구현",
+        "description": "외부 연동 데이터 현황 대시보드, 실시간 상태 모니터링, 시각화 차트 컴포넌트 개발",
+        "details": "1. 대시보드 컴포넌트:\n   ```vue\n   <script setup lang=\"ts\">\n   import { useSyncDataStore } from '@/stores/syncData';\n   import { onMounted, computed } from 'vue';\n   \n   const store = useSyncDataStore();\n   const stats = computed(() => store.statistics);\n   \n   onMounted(async () => {\n     await store.fetchStatistics();\n     // 30초마다 자동 갱신\n     setInterval(() => store.fetchStatistics(), 30000);\n   });\n   </script>\n   \n   <template>\n     <div class=\"dashboard\">\n       <StatusCard title=\"전체\" :count=\"stats.total\" />\n       <StatusCard title=\"성공\" :count=\"stats.success\" status=\"success\" />\n       <StatusCard title=\"실패\" :count=\"stats.failed\" status=\"error\" />\n       <StatusCard title=\"대기중\" :count=\"stats.pending\" status=\"warning\" />\n       <SyncChart :data=\"stats.hourlyTrend\" />\n     </div>\n   </template>\n   ```\n   \n2. 차트 컴포넌트 (Chart.js 또는 ECharts 활용):\n   ```vue\n   <script setup lang=\"ts\">\n   import { Line } from 'vue-chartjs';\n   const props = defineProps<{ data: TrendData[] }>();\n   </script>\n   ```\n   \n3. 실시간 알림 컴포넌트 (WebSocket 또는 SSE)\n4. 로딩 상태 및 에러 피드백 UX 처리",
+        "testStrategy": "- 대시보드 컴포넌트 렌더링 테스트\n- API 호출 및 데이터 바인딩 테스트\n- 자동 갱신 인터벌 동작 확인\n- 차트 데이터 포맷 변환 테스트",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "대시보드 컴포넌트 레이아웃 및 통계 데이터 바인딩",
+            "description": "대시보드 화면의 레이아웃을 구성하고 Vue 스토어에서 받아온 통계 데이터를 StatusCard 및 SyncChart 컴포넌트에 바인딩합니다.",
+            "dependencies": [],
+            "details": "<script setup>에서 useSyncDataStore를 import하고 onMounted 훅에서 fetchStatistics 호출 및 setInterval 설정, computed로 stats 생성 후 template 내 StatusCard와 SyncChart에 props 전달",
+            "status": "pending",
+            "testStrategy": "렌더링된 StatusCard 컴포넌트의 title, count 값과 SyncChart 데이터 바인딩 여부를 단위 테스트로 검증"
+          },
+          {
+            "id": 2,
+            "title": "차트 컴포넌트 구현 (Chart.js/ECharts)",
+            "description": "TrendData 배열을 시각화하기 위한 SyncChart 컴포넌트를 Chart.js 또는 ECharts 기반으로 개발합니다.",
+            "dependencies": [],
+            "details": "defineProps<{ data: TrendData[] }>()로 props 정의, reactive 데이터 변환 로직 작성, Chart.js 혹은 ECharts 인스턴스 생성 및 옵션 설정, resize 이벤트 대응",
+            "status": "pending",
+            "testStrategy": "모의 TrendData를 전달하여 chart 내부 데이터 매핑과 옵션 렌더링 상태를 스냅샷 및 단위 테스트로 확인"
+          },
+          {
+            "id": 3,
+            "title": "실시간 알림 컴포넌트 개발 (WebSocket/SSE)",
+            "description": "서버로부터 전송되는 실시간 알림 메시지를 수신하고 사용자에게 보여주는 Notification 컴포넌트를 구현합니다.",
+            "dependencies": [],
+            "details": "WebSocket 또는 EventSource 객체 생성, onmessage 핸들러에서 Vue reactive 상태에 알림 추가, unmounted 시 연결 종료, 알림 리스트 및 Toast UI 구성",
+            "status": "pending",
+            "testStrategy": "모의 WebSocket 서버를 이용해 메시지 전송 후 알림 컴포넌트가 정상적으로 수신 및 렌더링되는지 테스트"
+          },
+          {
+            "id": 4,
+            "title": "로딩 상태 및 에러 피드백 UX 처리",
+            "description": "API 호출 중 로딩 스피너를 표시하고, 에러 발생 시 사용자에게 모달 또는 Toast 형태로 피드백을 제공합니다.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "각 컴포넌트에서 로딩 상태 관리(useLoading), try/catch로 에러 핸들링, skeleton UI 적용, 에러 발생 시 retry 버튼 및 메시지 출력 로직 작성",
+            "status": "pending",
+            "testStrategy": "지연 및 에러 응답을 모킹하여 스피너 표시와 에러 메시지/재시도 UI가 올바르게 동작하는지 E2E 혹은 단위 테스트"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "고급 데이터 그리드 및 엑셀 다운로드 기능 구현",
+        "description": "대용량 데이터 페이징, 정렬, 필터링 기능이 포함된 데이터 테이블 및 엑셀 내보내기 기능 개발",
+        "details": "1. 데이터 그리드 컴포넌트:\n   ```vue\n   <script setup lang=\"ts\">\n   import { usePagination } from '@/composables/usePagination';\n   \n   const { page, size, sort, filters, data, loading, fetchData } = usePagination({\n     fetchFn: syncDataApi.list,\n     defaultSize: 20\n   });\n   \n   const columns = [\n     { key: 'id', label: 'ID', sortable: true },\n     { key: 'sourceSystem', label: '소스 시스템', filterable: true },\n     { key: 'status', label: '상태', filterable: true },\n     { key: 'syncedAt', label: '동기화 일시', sortable: true }\n   ];\n   </script>\n   \n   <template>\n     <DataTable \n       :columns=\"columns\"\n       :data=\"data\"\n       :loading=\"loading\"\n       v-model:page=\"page\"\n       v-model:sort=\"sort\"\n       @filter=\"handleFilter\"\n     />\n   </template>\n   ```\n   \n2. 백엔드 페이징/정렬 API:\n   ```java\n   @GetMapping\n   public Page<SyncDataResponse> list(\n       @PageableDefault(size = 20, sort = \"syncedAt\", direction = DESC) Pageable pageable,\n       @RequestParam(required = false) String status,\n       @RequestParam(required = false) String sourceSystem) {\n       return service.findWithFilters(pageable, status, sourceSystem);\n   }\n   ```\n   \n3. 엑셀 다운로드:\n   ```java\n   @GetMapping(\"/export\")\n   public void exportExcel(HttpServletResponse response, ExportRequest request) {\n       response.setContentType(\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\");\n       excelService.export(response.getOutputStream(), request);\n   }\n   ```",
+        "testStrategy": "- 페이징 파라미터 전달 및 결과 검증\n- 다중 컬럼 정렬 동작 테스트\n- 필터 조합 테스트\n- 엑셀 파일 생성 및 데이터 정합성 검증\n- 대용량 데이터 (10,000건) 성능 테스트",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "프론트엔드-백엔드 통합 및 E2E 테스트",
+        "description": "Vue.js 프론트엔드와 Spring Boot 백엔드 완전 통합, 인증 플로우 연동, 전체 기능 E2E 테스트 수행",
+        "details": "1. CORS 설정:\n   ```java\n   @Configuration\n   public class CorsConfig implements WebMvcConfigurer {\n       @Override\n       public void addCorsMappings(CorsRegistry registry) {\n           registry.addMapping(\"/api/**\")\n               .allowedOrigins(\"http://localhost:5173\")\n               .allowedMethods(\"GET\", \"POST\", \"PUT\", \"DELETE\")\n               .allowCredentials(true);\n       }\n   }\n   ```\n   \n2. Vue Router 인증 가드:\n   ```typescript\n   router.beforeEach((to, from) => {\n     const authStore = useAuthStore();\n     if (to.meta.requiresAuth && !authStore.isAuthenticated) {\n       return { name: 'login', query: { redirect: to.fullPath } };\n     }\n   });\n   ```\n   \n3. E2E 테스트 (Playwright):\n   ```typescript\n   test('로그인 후 대시보드 접근', async ({ page }) => {\n     await page.goto('/login');\n     await page.fill('[name=email]', 'test@example.com');\n     await page.fill('[name=password]', 'password123');\n     await page.click('button[type=submit]');\n     await expect(page).toHaveURL('/dashboard');\n     await expect(page.locator('.status-card')).toHaveCount(4);\n   });\n   ```\n   \n4. 전체 플로우 검증:\n   - 로그인 → 대시보드 → 데이터 조회 → 필터링 → 엑셀 다운로드",
+        "testStrategy": "- Playwright E2E 테스트 전체 시나리오 실행\n- 로그인/로그아웃 플로우 테스트\n- JWT 토큰 만료 시 재로그인 유도 테스트\n- 권한별 접근 제어 E2E 테스트\n- 크로스 브라우저 테스트 (Chrome, Firefox, Safari)",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "보안 취약점 점검 및 배포 자동화 구축",
+        "description": "OWASP Top 10 기반 보안 점검, GitHub Actions CI/CD 파이프라인 구축, Docker 기반 프로덕션 배포 환경 설정",
+        "details": "1. 보안 점검 항목:\n   - SQL Injection 방어 (JPA 파라미터 바인딩 확인)\n   - XSS 방어 (입력값 이스케이프)\n   - CSRF 토큰 (REST API는 stateless이므로 disabled)\n   - JWT 시크릿 키 환경변수 관리\n   - Rate Limiting 적용\n   \n2. GitHub Actions 워크플로우:\n   ```yaml\n   name: CI/CD Pipeline\n   on:\n     push:\n       branches: [main]\n   jobs:\n     test:\n       runs-on: ubuntu-latest\n       steps:\n         - uses: actions/checkout@v4\n         - name: Run Backend Tests\n           run: ./gradlew test\n         - name: Run Frontend Tests\n           run: cd frontend && npm test\n     build:\n       needs: test\n       steps:\n         - name: Build Docker Images\n           run: docker-compose build\n         - name: Push to Registry\n           run: docker push ${{ secrets.REGISTRY }}/app:${{ github.sha }}\n     deploy:\n       needs: build\n       steps:\n         - name: Deploy to Server\n           run: ssh ${{ secrets.SERVER }} 'docker-compose pull && docker-compose up -d'\n   ```\n   \n3. Nginx 프로덕션 설정:\n   ```nginx\n   server {\n       listen 80;\n       location / {\n           root /usr/share/nginx/html;\n           try_files $uri $uri/ /index.html;\n       }\n       location /api {\n           proxy_pass http://backend:8080;\n       }\n   }\n   ```\n   \n4. 환경별 설정 분리 (dev/staging/prod)",
+        "testStrategy": "- OWASP ZAP 자동화 보안 스캔\n- Dependency Check (취약한 라이브러리 검출)\n- CI 파이프라인 전체 실행 테스트\n- Blue-Green 배포 롤백 테스트\n- 프로덕션 환경 헬스체크 모니터링",
+        "priority": "high",
+        "dependencies": [
+          10
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "OWASP Top 10 기반 보안 점검 자동화 구현",
+            "description": "SQL Injection, XSS 방어, CSRF 비활성화, JWT 시크릿 키 관리, Rate Limiting 등 점검 항목을 구현",
+            "dependencies": [],
+            "details": "JPA 파라미터 바인딩 검증 로직 추가, 입력값 이스케이프 필터 구현, CSRF 토큰 기본 비활성화 설정, JWT 시크릿 키를 환경변수로 관리하는 코드 작성, Rate Limiting 필터 적용",
+            "status": "pending",
+            "testStrategy": "OWASP ZAP 자동 스캔, 의도적 취약점 케이스 실행 검증"
+          },
+          {
+            "id": 2,
+            "title": "GitHub Actions CI/CD 파이프라인 작성",
+            "description": "백엔드/프론트엔드 테스트, Docker 이미지 빌드 및 레지스트리 푸시, 프로덕션 서버 배포 단계를 정의",
+            "dependencies": [
+              1
+            ],
+            "details": "제공된 YAML 템플릿을 참고해 test, build, deploy job 구성, secrets 설정 및 권한 검증, 병렬/종속성 관계 설정 완료",
+            "status": "pending",
+            "testStrategy": "전체 파이프라인 실행 성공 확인, 실패 시 오류 알림 및 롤백 동작 검증"
+          },
+          {
+            "id": 3,
+            "title": "Nginx 프로덕션 설정 및 Blue-Green 배포 구성",
+            "description": "Nginx 리버스 프록시 설정과 Blue-Green 배포 스크립트를 작성하여 무중단 배포 환경 구축",
+            "dependencies": [
+              2
+            ],
+            "details": "정적 파일 서빙과 /api 프록시 설정을 포함한 Nginx 서버 블록 작성, Blue-Green 전환을 위한 Docker Compose 분기 및 스위치 스크립트 구현",
+            "status": "pending",
+            "testStrategy": "스테이징 서버에서 Blue-Green 전환 테스트, health endpoint 모니터링 및 트래픽 전환 검증"
+          },
+          {
+            "id": 4,
+            "title": "환경별(dev/staging/prod) 설정 분리 및 검증",
+            "description": "환경마다 application.yml, Docker Compose, GitHub Actions 환경변수 및 시크릿을 분리",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "dev/staging/prod 용 설정 파일 작성, GitHub Actions matrix 전략 적용, 환경별 빌드·배포 스크립트 분리 및 secrets 관리 구성",
+            "status": "pending",
+            "testStrategy": "각 환경별 배포 후 설정 파일 적용 여부 확인, 헬스체크 및 주요 API 기능 테스트 수행"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2026-04-13T00:51:49.712Z",
+      "updated": "2026-04-13T00:51:49.712Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

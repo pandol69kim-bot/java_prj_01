@@ -1,0 +1,101 @@
+{
+	"meta": {
+		"generatedAt": "2026-04-13T01:19:36.100Z",
+		"tasksAnalyzed": 11,
+		"totalTasks": 11,
+		"analysisCount": 11,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "프로젝트 인프라 및 개발 환경 구축",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "프로젝트 인프라 및 개발 환경 구축을 위해 다음과 같은 세부 작업을 생성하세요: 1) Docker Compose 및 PostgreSQL·Nginx 리버스 프록시 설정, 2) Spring Boot 3.x 프로젝트 초기화, 3) Vue.js 3 프로젝트 초기화, 4) GitHub Actions CI/CD 기본 워크플로우 구성",
+			"reasoning": "여러 기술(Docker, DB, Spring Boot, Vue.js, CI) 초기 설정을 통합해야 하지만 표준 패턴이 많아 복잡도는 중간 수준입니다."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "데이터베이스 스키마 설계 및 JPA 엔티티 구현",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "데이터베이스 스키마 설계 및 JPA 엔티티 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) ExternalDataSync 엔티티 설계 및 매핑, 2) SyncLog 엔티티 설계 및 관계 설정, 3) Repository 인터페이스 작성 및 커스텀 메서드 구현, 4) Flyway/Liquibase 마이그레이션 스크립트 작성",
+			"reasoning": "엔티티 간 관계, JSONB 컬럼, 커스텀 리포지토리 메서드, 마이그레이션 스크립트 등 데이터 계층 구현 난이도가 다소 높습니다."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "JWT 인증 시스템 및 Spring Security 구현",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "JWT 인증 시스템 및 Spring Security 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) JwtTokenProvider 클래스 구현, 2) SecurityFilterChain 및 SecurityConfig 작성, 3) 인증/인가 API 엔드포인트 개발(로그인/로그아웃), 4) 리프레시 토큰 저장·검증 및 갱신 로직 구현",
+			"reasoning": "토큰 생성·검증, 필터 체인 설정, Role 기반 접근 제어, 리프레시 메커니즘 구현 등 보안 로직이 포함되어 있어 구현과 테스트가 까다롭습니다."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "외부 시스템 연동 WebClient 모듈 개발",
+			"complexityScore": 8,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "외부 시스템 연동 WebClient 모듈 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) WebClientConfig 설정, 2) ExternalApiService 에러 핸들링 및 retry 로직 구현, 3) Resilience4j 기반 Circuit Breaker 구성, 4) 타임아웃 및 커넥션 풀 설정 및 성능 최적화",
+			"reasoning": "WebClient 설정뿐 아니라 재시도·에러 처리, Circuit Breaker, 타임아웃 튜닝 등 고가용성 패턴을 적용해야 해 기술적 난이도가 높습니다."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "데이터 동기화 스케줄링 및 배치 처리 구현",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "데이터 동기화 스케줄링 및 배치 처리 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) TaskScheduler 설정, 2) DataSyncService의 Scheduled 메서드 및 @Retryable 로직 구현, 3) 실패 데이터 재처리 스케줄러 구현, 4) 동기화 상태 모니터링 메트릭 수집 및 대시보드 연동",
+			"reasoning": "스케줄러, 트랜잭션 관리, 재시도·롤백, 멀티스레드 동시성 처리, 모니터링 등 배치 처리의 핵심 패턴을 모두 다뤄야 합니다."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "RESTful API 엔드포인트 설계 및 Swagger 문서화",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "RESTful API 엔드포인트 설계 및 Swagger 문서화를 위해 다음과 같은 세부 작업을 생성하세요: 1) SyncDataController CRUD 메서드 작성, 2) DTO 및 유효성 검증 애노테이션 추가, 3) OpenAPI/SwaggerConfig 설정, 4) MockMvc 기반 단위 테스트 작성",
+			"reasoning": "표준 REST 설계와 문서화 작업이지만, HTTP 상태 코드 준수, 유효성 검증, 자동화된 문서 생성까지 고려해야 해 중간 난이도입니다."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Vue.js 3 프론트엔드 기반 구조 및 공통 컴포넌트 개발",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Vue.js 3 프론트엔드 구조 및 공통 컴포넌트 개발을 위해 다음과 같은 세부 작업을 생성하세요: 1) 프로젝트 폴더 구조 및 초기 설정, 2) BaseButton, BaseInput 등 공통 UI 컴포넌트 구현, 3) Pinia 스토어(auth, syncData) 설정, 4) Axios 인터셉터 및 API 유틸리티 구성",
+			"reasoning": "Composition API, Pinia, Axios 설정 등 프론트엔드 기본 골격을 잡는 작업으로 복잡도가 중간 수준이지만 패턴이 명확합니다."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "대시보드 및 상태 모니터링 UI 구현",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "대시보드 및 상태 모니터링 UI 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) Dashboard 컴포넌트 레이아웃 및 통계 바인딩, 2) 차트 컴포넌트(Chart.js/ECharts) 구현, 3) WebSocket/SSE 기반 실시간 알림 컴포넌트 개발, 4) 로딩/에러 피드백 UX 처리",
+			"reasoning": "실시간 데이터 갱신, 차트 시각화, WebSocket/SSE 통합 등의 UI 복잡도가 있어 중상위 난이도입니다."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "고급 데이터 그리드 및 엑셀 다운로드 기능 구현",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "고급 데이터 그리드 및 엑셀 다운로드 기능 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) DataTable 컴포넌트 페이징/정렬/필터링 구현, 2) 백엔드 페이징 및 필터링 API 구현, 3) ExcelService 기반 엑셀 내보내기 기능 구현, 4) 대용량 데이터 성능 테스트 및 최적화",
+			"reasoning": "대용량 데이터 처리, 다양한 그리드 기능, 엑셀 내보내기 구현과 성능 테스트를 모두 다뤄야 해 난이도가 다소 높습니다."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "프론트엔드-백엔드 통합 및 E2E 테스트",
+			"complexityScore": 8,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "프론트엔드-백엔드 통합 및 E2E 테스트를 위해 다음과 같은 세부 작업을 생성하세요: 1) CORS 설정 및 보안 정책 구성, 2) Vue Router 인증 가드 구현, 3) Playwright 기반 E2E 시나리오 스크립트 작성, 4) 크로스 브라우저 테스트 환경 구성",
+			"reasoning": "다양한 컴포넌트 통합, 인증 플로우, 크로스 브라우저 E2E 테스트까지 아우르는 작업으로 높은 복잡도를 가집니다."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "보안 취약점 점검 및 배포 자동화 구축",
+			"complexityScore": 9,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "보안 취약점 점검 및 배포 자동화를 위해 다음과 같은 세부 작업을 생성하세요: 1) OWASP Top10 점검 항목 구현 및 자동화, 2) GitHub Actions CI/CD 파이프라인 작성, 3) Nginx 프로덕션 설정 및 Blue-Green 배포 구성, 4) 환경별(dev/staging/prod) 설정 분리 및 테스트",
+			"reasoning": "보안 점검, 취약점 스캔, CI/CD, 프로덕션 배포 환경 구성 등 광범위하고 중요한 작업을 포함해 매우 높은 난이도를 요구합니다."
+		}
+	]
+}

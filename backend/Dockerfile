@@ -1,3 +1,15 @@
+# ── Development stage ─────────────────────────────────────────
+FROM eclipse-temurin:17-jdk-alpine AS development
+WORKDIR /app
+
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle/ gradle/
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+
+# 소스는 볼륨 마운트로 주입되므로 CMD에서 bootRun 실행
+EXPOSE 8080
+CMD ["./gradlew", "bootRun", "--no-daemon"]
+
 # ── Build stage ──────────────────────────────────────────────
 FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app

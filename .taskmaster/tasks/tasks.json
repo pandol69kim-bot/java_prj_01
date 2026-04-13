@@ -444,7 +444,7 @@
           "6",
           "7"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -452,9 +452,10 @@
             "description": "대시보드 화면의 레이아웃을 구성하고 Vue 스토어에서 받아온 통계 데이터를 StatusCard 및 SyncChart 컴포넌트에 바인딩합니다.",
             "dependencies": [],
             "details": "<script setup>에서 useSyncDataStore를 import하고 onMounted 훅에서 fetchStatistics 호출 및 setInterval 설정, computed로 stats 생성 후 template 내 StatusCard와 SyncChart에 props 전달",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "렌더링된 StatusCard 컴포넌트의 title, count 값과 SyncChart 데이터 바인딩 여부를 단위 테스트로 검증",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:17:19.248Z"
           },
           {
             "id": 2,
@@ -462,9 +463,10 @@
             "description": "TrendData 배열을 시각화하기 위한 SyncChart 컴포넌트를 Chart.js 또는 ECharts 기반으로 개발합니다.",
             "dependencies": [],
             "details": "defineProps<{ data: TrendData[] }>()로 props 정의, reactive 데이터 변환 로직 작성, Chart.js 혹은 ECharts 인스턴스 생성 및 옵션 설정, resize 이벤트 대응",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "모의 TrendData를 전달하여 chart 내부 데이터 매핑과 옵션 렌더링 상태를 스냅샷 및 단위 테스트로 확인",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:17:32.362Z"
           },
           {
             "id": 3,
@@ -472,9 +474,10 @@
             "description": "서버로부터 전송되는 실시간 알림 메시지를 수신하고 사용자에게 보여주는 Notification 컴포넌트를 구현합니다.",
             "dependencies": [],
             "details": "WebSocket 또는 EventSource 객체 생성, onmessage 핸들러에서 Vue reactive 상태에 알림 추가, unmounted 시 연결 종료, 알림 리스트 및 Toast UI 구성",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "모의 WebSocket 서버를 이용해 메시지 전송 후 알림 컴포넌트가 정상적으로 수신 및 렌더링되는지 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:17:44.929Z"
           },
           {
             "id": 4,
@@ -486,14 +489,16 @@
               3
             ],
             "details": "각 컴포넌트에서 로딩 상태 관리(useLoading), try/catch로 에러 핸들링, skeleton UI 적용, 에러 발생 시 retry 버튼 및 메시지 출력 로직 작성",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "지연 및 에러 응답을 모킹하여 스피너 표시와 에러 메시지/재시도 UI가 올바르게 동작하는지 E2E 혹은 단위 테스트",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-04-13T05:17:57.511Z"
           }
         ],
         "complexity": 6,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "대시보드 및 상태 모니터링 UI 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) Dashboard 컴포넌트 레이아웃 및 통계 바인딩, 2) 차트 컴포넌트(Chart.js/ECharts) 구현, 3) WebSocket/SSE 기반 실시간 알림 컴포넌트 개발, 4) 로딩/에러 피드백 UX 처리"
+        "expansionPrompt": "대시보드 및 상태 모니터링 UI 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) Dashboard 컴포넌트 레이아웃 및 통계 바인딩, 2) 차트 컴포넌트(Chart.js/ECharts) 구현, 3) WebSocket/SSE 기반 실시간 알림 컴포넌트 개발, 4) 로딩/에러 피드백 UX 처리",
+        "updatedAt": "2026-04-13T05:17:57.511Z"
       },
       {
         "id": "9",
@@ -599,9 +604,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-04-13T05:06:44.542Z",
+      "lastModified": "2026-04-13T05:17:57.513Z",
       "taskCount": 11,
-      "completedCount": 7,
+      "completedCount": 8,
       "tags": [
         "master"
       ]

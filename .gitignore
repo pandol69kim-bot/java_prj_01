@@ -23,3 +23,23 @@ node_modules/
 
 # OS specific
 .DS_Store
+Thumbs.db
+
+# Java / Gradle
+backend/build/
+backend/.gradle/
+backend/out/
+*.class
+*.jar
+!**/src/**/
+
+# Frontend
+frontend/dist/
+frontend/.vite/
+
+# Test coverage
+backend/build/reports/
+frontend/coverage/
+
+# Docker
+docker-compose.override.yml

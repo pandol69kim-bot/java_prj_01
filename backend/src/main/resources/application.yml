@@ -47,6 +47,18 @@ external:
     timeout-seconds: 30
     retry-max-attempts: 3
 
+sync:
+  scheduler:
+    enabled: ${SYNC_SCHEDULER_ENABLED:true}
+    # 전체 동기화: 매 10분
+    full-sync-cron: "0 */10 * * * *"
+    # 실패 재처리: 매 5분
+    retry-cron: "0 */5 * * * *"
+    # 최대 재시도 횟수
+    max-retry: 3
+    # 배치 처리 크기
+    batch-size: 100
+
 resilience4j:
   circuitbreaker:
     instances:

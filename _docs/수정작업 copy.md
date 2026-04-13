@@ -1,0 +1,424 @@
+# 수정작업 로그
+
+수정이 필요한 버그 및 설정 오류를 발견 순서대로 기록합니다.
+
+---
+
+## [2026-04-13] nginx `try_files` + `proxy_pass` 충돌 버그
+
+### 파일
+`nginx/nginx.conf`
+
+### 문제
+`location /` 블록에서 `proxy_pass`와 `try_files`를 함께 사용:
+
+```nginx
+# 수정 전 (잘못된 설정)
+location / {
+    proxy_pass http://frontend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    try_files $uri $uri/ /index.html;   ← 버그
+}
+```
+
+- `proxy_pass`를 사용하는 location 블록에서 `try_files`는 동작하지 않음
+- 외부 nginx 컨테이너에는 로컬 정적 파일이 없으므로 `try_files`가 항상 실패
+- 문법 오류가 아니므로 nginx가 정상 시작되지만, Vue Router 직접 URL 접근(`/dashboard`, `/systems` 등) 시 404 반환 가능
+
+### 수정
+```nginx
+# 수정 후
+location / {
+    proxy_pass http://frontend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    # try_files 제거 — SPA 라우팅은 frontend 컨테이너 nginx.conf에서 처리
+}
+```
+
+### SPA 라우팅 처리 흐름
+```
+브라우저 /dashboard 요청
+  → 외부 nginx (nginx/nginx.conf): proxy_pass → frontend:80
+  → 프론트엔드 nginx (frontend/nginx.conf): try_files $uri $uri/ /index.html
+  → Vue Router가 클라이언트 측 라우팅 처리
+```
+
+### 발견 경위
+Docker nginx 컨테이너 시작 로그 검토 중 설정 오류 발견.  
+로그 자체에는 `[error]`가 없었으나 설정 구조 분석으로 잠재적 버그 식별.
+
+---
+
+## [2026-04-13] BaseAlert `defineProps` 중복 선언 버그
+
+### 파일
+`frontend/src/components/ui/BaseAlert.vue`
+
+### 문제
+`defineProps`를 두 번 호출하는 코드 작성:
+
+```typescript
+// 수정 전 (잘못된 코드)
+defineProps<{
+  message: string
+  type?: AlertType
+  dismissible?: boolean
+}>()
+
+withDefaults(defineProps<{ type?: AlertType; dismissible?: boolean }>(), {
+  type: 'info',
+  dismissible: true,
+})
+```
+
+- Vue 3에서 `defineProps`는 컴포넌트당 한 번만 호출해야 함
+- 기본값 설정이 필요하면 `withDefaults`로 단일 호출로 통합
+
+### 수정
+```typescript
+// 수정 후
+withDefaults(
+  defineProps<{
+    message: string
+    type?: AlertType
+    dismissible?: boolean
+  }>(),
+  {
+    type: 'info',
+    dismissible: true,
+  },
+)
+```
+
+### 발견 경위
+Task #8 작업 중 BaseAlert 컴포넌트 초기 작성 시 발견 및 즉시 수정.
+
+---
+
+## [2026-04-13] Dockerfile `development` 스테이지 누락
+
+### 파일
+- `backend/Dockerfile`
+- `frontend/Dockerfile`
+
+### 오류 메시지
+```
+target backend: failed to solve: target stage "development" could not be found
+target frontend: failed to solve: target stage "development" could not be found
+```
+
+### 문제
+`docker-compose.dev.yml`에서 두 서비스 모두 `target: development`를 지정했으나,
+두 Dockerfile 모두 `builder` / `runtime` 스테이지만 존재하고 `development` 스테이지가 없었음.
+
+### 수정
+
+**backend/Dockerfile** — `development` 스테이지 추가 (맨 앞):
+```dockerfile
+FROM eclipse-temurin:17-jdk-alpine AS development
+WORKDIR /app
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle/ gradle/
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+EXPOSE 8080
+CMD ["./gradlew", "bootRun", "--no-daemon"]
+```
+
+**frontend/Dockerfile** — `development` 스테이지 추가 (맨 앞):
+```dockerfile
+FROM node:20-alpine AS development
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
+```
+
+### 동작 방식
+- `docker-compose.dev.yml`의 볼륨 마운트(`./backend:/app`, `./frontend:/app`)가 소스를 주입
+- 컨테이너 내 `node_modules` / Gradle 캐시는 이미지 빌드 시 설치되어 유지
+- 프로덕션 빌드(`docker-compose.yml`)는 기존 `builder → runtime` 스테이지 그대로 사용
+
+### 발견 경위
+`docker compose -f docker-compose.yml -f docker-compose.dev.yml up` 실행 시 빌드 오류 발생.
+
+---
+
+## [2026-04-13] backend Dockerfile — `gradle/` 래퍼 디렉토리 누락
+
+### 파일
+`backend/Dockerfile`
+
+### 오류 메시지
+```
+target backend: failed to solve: failed to compute cache key:
+failed to calculate checksum of ref ...: "/gradle": not found
+```
+
+### 문제
+Dockerfile에서 `COPY gradle/ gradle/` 명령 사용했으나,
+`backend/gradle/` 래퍼 디렉토리(`gradle-wrapper.jar`, `gradle-wrapper.properties`)가
+프로젝트에 생성되지 않은 상태.
+
+### 수정
+`gradle:8-jdk17-alpine` 공식 Gradle 이미지로 베이스 변경.
+`gradlew` 래퍼 대신 `gradle` 명령 직접 사용 → 래퍼 디렉토리 불필요.
+
+```dockerfile
+# 수정 전
+FROM eclipse-temurin:17-jdk-alpine AS builder
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle/ gradle/                          ← 없는 디렉토리 COPY
+RUN chmod +x gradlew && ./gradlew bootJar ...
+
+# 수정 후
+FROM gradle:8-jdk17-alpine AS builder
+COPY build.gradle settings.gradle ./
+RUN gradle bootJar --no-daemon -x test        ← 래퍼 없이 직접 실행
+```
+
+`development` / `builder` 스테이지 모두 동일하게 적용.
+
+### 발견 경위
+`docker compose up --build` 실행 시 빌드 캐시 키 계산 오류 발생.
+
+---
+
+## [2026-04-13] frontend `package-lock.json` 누락으로 502 Bad Gateway
+
+### 파일
+`frontend/package-lock.json` (생성)
+
+### 오류 현상
+`http://localhost/` 접속 시 502 Bad Gateway 반환.
+
+### 원인
+`frontend/Dockerfile` builder 스테이지에서 `npm ci` 사용.  
+`npm ci`는 `package-lock.json`이 반드시 존재해야 실행됨.  
+`package-lock.json`이 없어 Docker 빌드 실패 → 프론트엔드 컨테이너 미기동 → nginx 502.
+
+### 수정
+로컬에서 `npm install --package-lock-only` 실행하여 `package-lock.json` 생성:
+```bash
+cd frontend && npm install --package-lock-only
+```
+
+---
+
+## [2026-04-13] tsconfig.json `baseUrl` deprecated 경고
+
+### 파일
+`frontend/tsconfig.json`
+
+### 오류 메시지
+```
+tsconfig.json(18,5): error TS5101: Option 'baseUrl' is deprecated
+```
+
+### 원인
+`moduleResolution: bundler` 모드에서는 `baseUrl`이 불필요하며 deprecated 처리됨.  
+`paths`의 `@/*` 별칭은 `baseUrl` 없이도 동작.
+
+### 수정
+```json
+// 수정 전
+"baseUrl": ".",
+"paths": { "@/*": ["./src/*"] }
+
+// 수정 후
+"paths": { "@/*": ["./src/*"] }
+```
+
+---
+
+## [2026-04-13] Spring Bean 이름 충돌 — ExternalSystemService 중복 등록
+
+### 파일
+- `backend/src/main/java/com/example/app/infrastructure/webclient/ExternalSystemService.java` (삭제)
+- `backend/src/main/java/com/example/app/infrastructure/webclient/ExternalDataCollectionService.java` (신규)
+
+### 오류
+`ConflictingBeanDefinitionException`:  
+`api/externalsystem/ExternalSystemService`와  
+`infrastructure/webclient/ExternalSystemService` 두 클래스 모두  
+Spring bean 이름 `externalSystemService`로 등록되어 충돌.
+
+### 수정
+`infrastructure/webclient/ExternalSystemService`를  
+`ExternalDataCollectionService`로 클래스명 변경 (파일 재생성 후 구 파일 삭제).  
+두 클래스 모두 실질적으로 다른 역할:
+- `api/externalsystem/ExternalSystemService`: CRUD 비즈니스 로직
+- `infrastructure/webclient/ExternalDataCollectionService`: WebClient 데이터 수집
+
+---
+
+## [2026-04-13] DataSyncScheduler.java Javadoc `*/` 컴파일 오류
+
+### 파일
+`backend/src/main/java/com/example/app/infrastructure/scheduler/DataSyncScheduler.java`
+
+### 오류 메시지
+```
+DataSyncScheduler.java:25: error: illegal start of type
+     * cron: "0 */10 * * * *"
+DataSyncScheduler.java:25: error: unclosed string literal
+     * cron: "0 */10 * * * *"
+```
+
+### 원인
+Javadoc 블록 주석(`/** ... */`) 내부에 cron 표현식 `*/10` 포함.  
+`*/`가 Java 컴파일러에 의해 블록 주석 종료 문자로 해석됨 → 이후 코드가 주석 밖으로 탈출되어 문법 오류 발생.
+
+### 수정
+```java
+// 수정 전
+* cron: "0 */10 * * * *"
+* cron: "0 */5 * * * *"
+
+// 수정 후 (HTML entity로 이스케이프)
+* cron: "0 *&#47;10 * * * *"
+* cron: "0 *&#47;5 * * * *"
+```
+
+---
+
+## [2026-04-13] CI 워크플로우 `gradlew` 파일 없음 오류
+
+### 파일
+`.github/workflows/ci.yml`
+
+### 오류 메시지
+```
+chmod: cannot access 'backend/gradlew': No such file or directory
+Error: Process completed with exit code 1.
+```
+
+### 원인
+프로젝트에 Gradle Wrapper(`gradlew`, `gradle/`)가 없음.  
+CI에서 `chmod +x backend/gradlew` 및 `./gradlew` 명령 사용 → 파일 없어 실패.  
+Docker 빌드는 `gradle:8-jdk17-alpine` 이미지의 시스템 gradle을 사용하도록 수정했으나 CI는 그대로였음.
+
+### 수정
+```yaml
+# 수정 전
+- name: Grant execute permission for gradlew
+  run: chmod +x backend/gradlew
+- name: Run tests
+  run: ./gradlew test jacocoTestReport --no-daemon
+- name: Build JAR
+  run: ./gradlew bootJar --no-daemon -x test
+
+# 수정 후
+- name: Set up Gradle
+  uses: gradle/actions/setup-gradle@v3
+  with:
+    gradle-version: '8.x'
+- name: Run tests
+  run: gradle test jacocoTestReport --no-daemon
+- name: Build JAR
+  run: gradle bootJar --no-daemon -x test
+```
+
+---
+
+## [2026-04-13] dev 모드 nginx 502 — Vite 포트 불일치
+
+### 파일
+- `nginx/nginx.dev.conf` (신규 생성)
+- `docker-compose.dev.yml` (nginx 오버라이드 추가)
+
+### 오류 현상
+`docker compose -f docker-compose.yml -f docker-compose.dev.yml up` 실행 시 `http://localhost/` 502 Bad Gateway.
+
+```
+connect() failed (111: Connection refused) while connecting to upstream,
+upstream: "http://172.19.0.4:80/"
+```
+
+### 원인
+- `docker-compose.dev.yml`이 frontend를 `target: development`(Vite dev server)로 빌드
+- Vite는 컨테이너 내부 port **5173**에서 수신
+- `nginx/nginx.conf`의 upstream은 `frontend:80`으로 고정
+- port 80에 아무것도 없으므로 Connection refused → 502
+
+### 수정
+
+**`nginx/nginx.dev.conf` 신규 생성:**
+```nginx
+upstream frontend {
+    server frontend:5173;   # Vite dev server 포트
+}
+location / {
+    proxy_pass http://frontend;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";  # HMR WebSocket 지원
+    proxy_http_version 1.1;
+}
+```
+
+**`docker-compose.dev.yml` nginx 서비스 오버라이드 추가:**
+```yaml
+nginx:
+  volumes:
+    - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+```
+
+### 실행 방식 구분
+| 모드 | 명령어 | nginx 설정 |
+|------|--------|-----------|
+| 프로덕션 | `docker compose up --build` | `nginx/nginx.conf` (frontend:80) |
+| 개발 | `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build` | `nginx/nginx.dev.conf` (frontend:5173) |
+
+---
+
+## [2026-04-13] frontend `index.html` 누락 + Vite allowedHosts 403
+
+### 파일
+- `frontend/index.html` (신규 생성)
+- `frontend/vite.config.ts` (`allowedHosts`, `host` 추가)
+
+### 오류 현상
+`http://localhost/` 접속 시 nginx → frontend:5173 연결은 되지만 **403 Forbidden** 반환.  
+Vite 로그: `"Could not auto-determine entry point from rollupOptions or html files"`
+
+### 원인 1 — index.html 누락
+Vite 프로젝트의 진입점인 `frontend/index.html`이 생성되지 않은 상태.  
+Vite가 서빙할 파일을 찾지 못해 아무것도 서빙하지 못함.
+
+### 원인 2 — Vite 5.4+ 보안 Host 검사
+Vite 5.4.6에서 CVE-2025-30208 보안 패치로 `Host` 헤더 검사 도입.  
+nginx가 `Host: frontend`로 프록시하면 Vite가 알 수 없는 호스트로 판단 → 403.  
+`allowedHosts: 'all'` (문자열)은 Vite API에서 유효하지 않음.  
+올바른 값은 `true` (boolean).
+
+### 수정
+
+**`frontend/index.html` 생성:**
+```html
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>외부 연동 관리 시스템</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+```
+
+**`frontend/vite.config.ts` server 설정 추가:**
+```typescript
+server: {
+  port: 5173,
+  host: true,          // 모든 네트워크 인터페이스에서 수신
+  allowedHosts: true,  // 모든 호스트 허용 (Docker 프록시 환경)
+  ...
+}
+```
+
+---

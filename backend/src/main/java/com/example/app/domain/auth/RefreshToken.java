@@ -44,12 +44,9 @@ public class RefreshToken {
     }
 
     public RefreshToken rotate(String newToken, long expirationMs) {
-        RefreshToken updated = new RefreshToken();
-        updated.username = this.username;
-        updated.token = newToken;
-        updated.createdAt = LocalDateTime.now();
-        updated.expiresAt = updated.createdAt.plusSeconds(expirationMs / 1000);
-        return updated;
+        this.token = newToken;
+        this.expiresAt = LocalDateTime.now().plusSeconds(expirationMs / 1000);
+        return this;
     }
 
     public boolean isExpired() {

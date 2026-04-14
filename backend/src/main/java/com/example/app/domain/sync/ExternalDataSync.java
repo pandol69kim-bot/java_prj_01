@@ -56,6 +56,23 @@ public class ExternalDataSync extends BaseEntity {
         PENDING, PROCESSING, COMPLETED, FAILED, SKIPPED
     }
 
+    /** 수동 데이터 입력용 팩터리 메서드 (테스트/데모 목적) */
+    public static ExternalDataSync forManualEntry(
+            ExternalSystem externalSystem,
+            String externalRefId,
+            String rawPayload,
+            SyncStatus status) {
+        ExternalDataSync sync = new ExternalDataSync();
+        sync.externalSystem = externalSystem;
+        sync.externalRefId = externalRefId;
+        sync.rawPayload = rawPayload;
+        sync.status = status;
+        if (status == SyncStatus.COMPLETED) {
+            sync.syncedAt = LocalDateTime.now();
+        }
+        return sync;
+    }
+
     public static ExternalDataSync pending(ExternalSystem externalSystem,
                                             String externalRefId,
                                             String rawPayload) {

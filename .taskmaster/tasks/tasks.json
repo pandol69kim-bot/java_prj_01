@@ -511,11 +511,62 @@
           "6",
           "7"
         ],
-        "status": "pending",
-        "subtasks": [],
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "DataTable 컴포넌트에 페이징·정렬·필터링 기능 추가",
+            "description": "Vue.js DataTable 컴포넌트에 페이지네이션, 컬럼 정렬, 필터링 기능을 구현합니다.",
+            "dependencies": [],
+            "details": "usePagination composable에서 page, size, sort, filters 상태와 fetchData 함수를 가져와 UI 버튼 및 컬럼 헤더 클릭 이벤트에 바인딩합니다. 필터 이벤트 핸들러 작성 포함.",
+            "status": "done",
+            "testStrategy": "페이징, 정렬, 필터링 시 API 호출 파라미터와 반환 데이터가 일치하는지 검증",
+            "updatedAt": "2026-04-14T03:28:49.735Z",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "백엔드 페이징 및 필터링 API 구현",
+            "description": "Spring Boot 컨트롤러와 서비스에서 Pageable, status, sourceSystem 파라미터를 처리하는 REST API를 구현합니다.",
+            "dependencies": [],
+            "details": "@PageableDefault 어노테이션으로 기본 페이지 크기 및 정렬 방향 설정, service.findWithFilters(pageable, status, sourceSystem) 메소드에 JPA Specification 기반 동적 필터링 로직 구현.",
+            "status": "done",
+            "testStrategy": "MockMvc를 통해 페이징 및 필터 파라미터별 응답 크기와 데이터 필터링 정확도 확인",
+            "parentId": "undefined",
+            "updatedAt": "2026-04-14T03:29:04.845Z"
+          },
+          {
+            "id": 3,
+            "title": "ExcelService 기반 엑셀 내보내기 기능 개발",
+            "description": "사용자 요청에 따라 데이터를 엑셀 파일로 생성하여 HttpServletResponse로 스트리밍합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "ExportRequest 객체에 필터 조건을 매핑한 후 response.setContentType 및 헤더 설정, excelService.export(outputStream, request)를 호출하여 엑셀 파일을 생성합니다.",
+            "status": "done",
+            "testStrategy": "엑셀 다운로드 API 호출 후 반환된 XLSX 파일을 파싱해 헤더와 행 개수 일치 여부 검증",
+            "parentId": "undefined",
+            "updatedAt": "2026-04-14T03:29:19.880Z"
+          },
+          {
+            "id": 4,
+            "title": "대용량 데이터 성능 테스트 및 최적화",
+            "description": "10,000건 이상의 대용량 데이터를 대상으로 애플리케이션 및 DB 성능 테스트를 수행하고 최적화합니다.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "JMeter 또는 Locust로 부하 테스트를 실행하여 응답 시간, CPU/메모리 사용량을 측정합니다. 쿼리 인덱스 추가, N+1 쿼리 방지, 프론트엔드 가상 스크롤 적용 등의 최적화 작업을 진행합니다.",
+            "status": "pending",
+            "testStrategy": "JMeter 부하 테스트로 응답 시간 및 리소스 사용량 측정, 최적화 전후 비교 검증",
+            "parentId": "undefined"
+          }
+        ],
         "complexity": 6,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "고급 데이터 그리드 및 엑셀 다운로드 기능 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) DataTable 컴포넌트 페이징/정렬/필터링 구현, 2) 백엔드 페이징 및 필터링 API 구현, 3) ExcelService 기반 엑셀 내보내기 기능 구현, 4) 대용량 데이터 성능 테스트 및 최적화"
+        "expansionPrompt": "고급 데이터 그리드 및 엑셀 다운로드 기능 구현을 위해 다음과 같은 세부 작업을 생성하세요: 1) DataTable 컴포넌트 페이징/정렬/필터링 구현, 2) 백엔드 페이징 및 필터링 API 구현, 3) ExcelService 기반 엑셀 내보내기 기능 구현, 4) 대용량 데이터 성능 테스트 및 최적화",
+        "updatedAt": "2026-04-14T03:29:19.880Z"
       },
       {
         "id": "10",
@@ -532,7 +583,54 @@
           "9"
         ],
         "status": "pending",
-        "subtasks": [],
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "CORS 설정 및 보안 정책 구성",
+            "description": "Spring Boot 백엔드에서 CORS 설정과 추가 보안 헤더 정책을 구성합니다.",
+            "dependencies": [],
+            "details": "CorsConfig 클래스를 작성하여 /api/** 경로에 대해 allowOrigins, allowMethods, allowCredentials 설정하고, Content-Security-Policy 및 기타 보안 헤더를 추가합니다.",
+            "status": "pending",
+            "testStrategy": "Postman과 브라우저 개발자 도구를 이용해 CORS 헤더와 보안 헤더가 올바르게 적용됐는지 확인합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Vue Router 인증 가드 구현",
+            "description": "Vue.js 프론트엔드에 인증 가드를 추가해 보호된 라우트 접근 제어를 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "router.beforeEach 훅에서 meta.requiresAuth가 true인 라우트 진입 시 useAuthStore로 인증 상태와 JWT 만료를 확인하고, 미인증 시 로그인 페이지로 리다이렉트합니다.",
+            "status": "pending",
+            "testStrategy": "로그인 상태 및 비로그인 상태에서 보호된 라우트 접근 시 리다이렉트 및 정상 접근 여부를 Playwright 자동화와 수동 테스트로 검증합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Playwright 기반 E2E 시나리오 스크립트 작성",
+            "description": "Playwright를 사용해 전체 사용자 흐름 E2E 테스트 스크립트를 작성합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "login.spec.ts 등 테스트 파일을 생성하여 로그인, 대시보드 접근, 데이터 조회, 필터링, 엑셀 다운로드까지의 시나리오를 Playwright API로 구현하고 playwright.config.ts에 설정을 추가합니다.",
+            "status": "pending",
+            "testStrategy": "CI 환경에서 Playwright test를 실행해 모든 E2E 시나리오가 성공하는지 확인합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "크로스 브라우저 테스트 환경 구성",
+            "description": "다양한 브라우저에서 E2E 테스트가 실행되도록 환경을 구성합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "playwright.config.ts에 프로젝트 항목으로 Chromium, Firefox, WebKit을 추가하고 GitHub Actions 또는 CI 파이프라인에서 각 브라우저별 테스트를 병렬 실행하도록 워크플로우를 작성합니다.",
+            "status": "pending",
+            "testStrategy": "CI 파이프라인에서 Chrome, Firefox, Safari(WebKit) 환경별로 테스트가 모두 통과하는지 확인합니다.",
+            "parentId": "undefined"
+          }
+        ],
         "complexity": 8,
         "recommendedSubtasks": 4,
         "expansionPrompt": "프론트엔드-백엔드 통합 및 E2E 테스트를 위해 다음과 같은 세부 작업을 생성하세요: 1) CORS 설정 및 보안 정책 구성, 2) Vue Router 인증 가드 구현, 3) Playwright 기반 E2E 시나리오 스크립트 작성, 4) 크로스 브라우저 테스트 환경 구성"
@@ -604,7 +702,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-04-13T05:17:57.513Z",
+      "lastModified": "2026-04-14T03:29:19.882Z",
       "taskCount": 11,
       "completedCount": 8,
       "tags": [

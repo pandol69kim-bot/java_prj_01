@@ -19,6 +19,12 @@ export const useSyncDataStore = defineStore('syncData', () => {
   const syncLoading = ref(false)
   const syncError = ref<string | null>(null)
 
+  // 정렬·필터 상태
+  const sortField = ref('createdAt')
+  const sortDir = ref<'asc' | 'desc'>('desc')
+  const filterStatus = ref('')
+  const filterRefId = ref('')
+
   // 대시보드 요약
   const summary = ref<SyncSummary | null>(null)
   const summaryLoading = ref(false)
@@ -54,7 +60,15 @@ export const useSyncDataStore = defineStore('syncData', () => {
     syncLoading.value = true
     syncError.value = null
     try {
-      const res = await syncDataApi.getListBySystem(systemId, page, size)
+      const res = await syncDataApi.getListBySystem(
+        systemId,
+        page,
+        size,
+        sortField.value,
+        sortDir.value,
+        filterStatus.value || undefined,
+        filterRefId.value || undefined,
+      )
       const pageData: SyncDataPage = res.data.data
       syncItems.value = pageData.content
       syncPage.value = pageData.number
@@ -64,6 +78,25 @@ export const useSyncDataStore = defineStore('syncData', () => {
       syncError.value = err instanceof Error ? err.message : '동기화 데이터 조회 실패'
     } finally {
       syncLoading.value = false
+    }
+  }
+
+  async function exportExcel() {
+    if (!selectedSystemId.value) return
+    try {
+      const res = await syncDataApi.exportExcel(
+        selectedSystemId.value,
+        filterStatus.value || undefined,
+        filterRefId.value || undefined,
+      )
+      const url = URL.createObjectURL(new Blob([res.data as BlobPart]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'sync-data.xlsx'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: unknown) {
+      syncError.value = err instanceof Error ? err.message : '엑셀 다운로드 실패'
     }
   }
 
@@ -102,6 +135,10 @@ export const useSyncDataStore = defineStore('syncData', () => {
     syncTotalElements,
     syncLoading,
     syncError,
+    sortField,
+    sortDir,
+    filterStatus,
+    filterRefId,
     summary,
     summaryLoading,
     fetchSystems,
@@ -110,5 +147,6 @@ export const useSyncDataStore = defineStore('syncData', () => {
     fetchSummary,
     triggerSync,
     retryFailed,
+    exportExcel,
   }
 })

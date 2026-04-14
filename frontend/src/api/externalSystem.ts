@@ -3,9 +3,9 @@ import apiClient from './client'
 export interface ExternalSystem {
   id: number
   systemCode: string
-  systemName: string
+  name: string
   baseUrl: string
-  authType: 'NONE' | 'API_KEY' | 'BEARER' | 'BASIC'
+  authType: 'NONE' | 'API_KEY' | 'BEARER_TOKEN' | 'BASIC'
   active: boolean
   createdAt: string
   updatedAt: string
@@ -21,10 +21,13 @@ export interface ExternalSystemPage {
 
 export interface CreateExternalSystemRequest {
   systemCode: string
-  systemName: string
+  name: string
   baseUrl: string
-  authType: 'NONE' | 'API_KEY' | 'BEARER' | 'BASIC'
+  authType: 'NONE' | 'API_KEY' | 'BEARER_TOKEN' | 'BASIC'
   apiKey?: string
+  timeoutSeconds?: number
+  retryMaxAttempts?: number
+  description?: string
 }
 
 export interface UpdateApiKeyRequest {

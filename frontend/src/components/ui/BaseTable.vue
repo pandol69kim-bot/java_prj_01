@@ -12,8 +12,16 @@
             v-for="col in columns"
             :key="col.key"
             class="table__th"
+            :class="{ 'table__th--sortable': col.sortable }"
             :style="col.width ? { width: col.width } : {}"
-          >{{ col.label }}</th>
+            :aria-sort="col.sortable ? (sortKey === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none') : undefined"
+            @click="col.sortable ? onSort(col.key) : undefined"
+          >
+            {{ col.label }}
+            <span v-if="col.sortable" class="sort-icon" aria-hidden="true">
+              {{ sortKey === col.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕' }}
+            </span>
+          </th>
         </tr>
       </thead>
       <tbody class="table__body">
@@ -37,13 +45,30 @@
 </template>
 
 <script setup lang="ts">
-interface Column { key: string; label: string; width?: string }
+export interface Column {
+  key: string
+  label: string
+  width?: string
+  sortable?: boolean
+}
 
-defineProps<{
+const props = defineProps<{
   columns: Column[]
   rows: Record<string, unknown>[]
   loading?: boolean
+  sortKey?: string
+  sortDir?: 'asc' | 'desc'
 }>()
+
+const emit = defineEmits<{
+  sort: [key: string, dir: 'asc' | 'desc']
+}>()
+
+function onSort(key: string) {
+  const nextDir: 'asc' | 'desc' =
+    props.sortKey === key && props.sortDir === 'desc' ? 'asc' : 'desc'
+  emit('sort', key, nextDir)
+}
 </script>
 
 <style scoped>
@@ -71,6 +96,21 @@ defineProps<{
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
+  user-select: none;
+}
+
+.table__th--sortable {
+  cursor: pointer;
+}
+
+.table__th--sortable:hover {
+  color: var(--color-primary);
+}
+
+.sort-icon {
+  margin-left: var(--space-1);
+  font-size: var(--text-xs);
+  opacity: 0.6;
 }
 
 .table__row { transition: background var(--transition-fast); }

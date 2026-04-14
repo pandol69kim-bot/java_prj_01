@@ -20,6 +20,9 @@ public record SyncDataResponse(
         @Schema(description = "처리 상태")
         String status,
 
+        @Schema(description = "원본 페이로드 (외부 시스템 수신 원문)")
+        String rawPayload,
+
         @Schema(description = "처리된 페이로드")
         String processedPayload,
 
@@ -41,6 +44,7 @@ public record SyncDataResponse(
                 sync.getExternalSystem().getSystemCode(),
                 sync.getExternalRefId(),
                 sync.getStatus().name(),
+                sync.getRawPayload(),
                 sync.getProcessedPayload(),
                 sync.getErrorMessage(),
                 sync.getRetryCount(),

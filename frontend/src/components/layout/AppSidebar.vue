@@ -25,9 +25,10 @@ defineProps<{ collapsed?: boolean }>()
 const route = useRoute()
 
 const menuItems = [
-  { path: '/dashboard', label: '대시보드', icon: '◈' },
+  { path: '/dashboard', label: '대시보드',    icon: '◈' },
   { path: '/systems',   label: '외부 시스템', icon: '⚙' },
   { path: '/sync-data', label: '동기화 데이터', icon: '↺' },
+  { path: '/scheduler', label: '스케줄러 관리', icon: '⏱' },
 ]
 
 function isActive(path: string) {

@@ -4,14 +4,15 @@ export type SyncStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'SK
 
 export interface SyncDataItem {
   id: number
-  externalSystemId: number
+  systemCode: string
   externalRefId: string
   status: SyncStatus
-  payload: string | null
+  rawPayload: string | null
+  processedPayload: string | null
   errorMessage: string | null
+  retryCount: number
   syncedAt: string | null
   createdAt: string
-  updatedAt: string
 }
 
 export interface SyncDataPage {
@@ -45,6 +46,51 @@ export interface SyncSummary {
   todayFail: number
   pendingCount: number
   recentLogs: SyncLog[]
+}
+
+export interface SchedulerSummary {
+  dataPending: number
+  dataProcessing: number
+  dataCompleted: number
+  dataFailed: number
+  dataSkipped: number
+  jobRunning: number
+  jobCompleted: number
+  jobPartialFailed: number
+  jobFailed: number
+  since: string
+}
+
+export interface SyncLogDetail {
+  id: number
+  systemId: number
+  systemCode: string
+  status: 'RUNNING' | 'COMPLETED' | 'PARTIAL_FAILED' | 'FAILED'
+  triggerType: 'SCHEDULED' | 'MANUAL' | 'API'
+  totalCount: number
+  successCount: number
+  failCount: number
+  triggeredAt: string
+  completedAt: string | null
+  errorSummary: string | null
+}
+
+export interface SyncLogPage {
+  content: SyncLogDetail[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+}
+
+export interface TriggerResult {
+  id: number
+  systemCode: string
+  status: string
+  triggerType: string
+  totalCount: number
+  successCount: number
+  failCount: number
 }
 
 export const syncDataApi = {
@@ -99,10 +145,25 @@ export const syncDataApi = {
   },
 
   triggerSync(systemCode: string) {
-    return apiClient.post<{ data: string }>(`/sync/trigger/${systemCode}`)
+    return apiClient.post<{ data: TriggerResult }>(`/sync/trigger/${systemCode}`)
   },
 
   retryFailed() {
-    return apiClient.post<{ data: string }>('/sync/retry-failed')
+    return apiClient.post<{ data: { retriedCount: number } }>('/sync/retry-failed')
+  },
+
+  getSchedulerSummary() {
+    return apiClient.get<{ data: SchedulerSummary }>('/sync/summary')
+  },
+
+  getSyncLogs(params: {
+    systemId?: number
+    status?: string
+    triggerType?: string
+    hours?: number
+    page?: number
+    size?: number
+  }) {
+    return apiClient.get<{ data: SyncLogPage }>('/sync/logs', { params })
   },
 }

@@ -21,5 +21,5 @@ CREATE INDEX idx_users_email    ON users (email);
 -- password: 'admin1234' BCrypt 인코딩 값 (운영 환경에서 반드시 교체)
 INSERT INTO users (username, email, password, role)
 VALUES ('admin', 'admin@example.com',
-        '$2a$12$eDiOAnpBmQKA9uwVHFIIaOnpjqf/.xJI/nGiU1lqS4M4QFHyE7DWy',
+        '$2b$10$6BChRMr1u/HOKJ5j/g4u4OpeGWCxAys5D2jQeCSrgeFSKrOPUvFjO',
         'ROLE_ADMIN');

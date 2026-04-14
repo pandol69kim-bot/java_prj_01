@@ -32,6 +32,12 @@ const router = createRouter({
       component: () => import('@/pages/SyncDataPage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/scheduler',
+      name: 'scheduler',
+      component: () => import('@/pages/SchedulerPage.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

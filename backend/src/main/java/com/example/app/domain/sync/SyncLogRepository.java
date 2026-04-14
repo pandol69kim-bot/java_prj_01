@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface SyncLogRepository extends JpaRepository<SyncLog, Long> {
+public interface SyncLogRepository extends JpaRepository<SyncLog, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<SyncLog> {
 
     Page<SyncLog> findByExternalSystemId(Long externalSystemId, Pageable pageable);
 
